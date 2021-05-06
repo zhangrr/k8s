@@ -1,0 +1,8 @@
+---
+- include: centos-user.yml
+- include: pam_limits.yml
+- include: sysctl.yml
+- include: swap.yml
+- include: selinux.yml
+- include: iscsi.yml
+- include: ipvs.yml

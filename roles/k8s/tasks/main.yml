@@ -1,0 +1,44 @@
+---
+- include_tasks: Setup-RedHat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Install Kubernetes packages.
+  package:
+    name: "{{ item.name | default(item) }}"
+    state: "{{ item.state | default('present') }}"
+  notify: restart kubelet
+  with_items: "{{ k8s_packages }}"
+
+- name: Ensure kubelet is started and enabled at boot.
+  service:
+    name: kubelet
+    state: started
+    enabled: true
+
+- name: Check if Kubernetes has already been initialized.
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_init_stat
+
+# Set up master.
+- include_tasks: master-setup.yml
+  when: k8s_role == 'master'
+
+# Set up workers.
+- name: Get the kubeadm join command from the Kubernetes master.
+  command: kubeadm token create --print-join-command
+  changed_when: false
+  when: k8s_role == 'master'
+  register: k8s_join_command_result
+
+- name: Set the kubeadm join command globally.
+  set_fact:
+    k8s_join_command: >
+      {{ k8s_join_command_result.stdout }}
+  when: k8s_join_command_result.stdout is defined
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  with_items: "{{ groups['all'] }}"
+
+- include_tasks: worker-setup.yml
+  when: k8s_role == 'worker'

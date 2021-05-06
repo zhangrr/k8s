@@ -1,0 +1,11 @@
+---
+- name: add Kubernetes' YUM repository
+  yum_repository:
+    name: Kubernetes
+    description: Kubernetes YUM repository
+    gpgcheck: yes
+    enabled: yes
+    baseurl: "{{ k8s_yum_base_url }}"
+    gpgkey: "{{ k8s_yum_gpg_key }}"
+    proxy: "{{ k8s_http_proxy }}"
+    keepcache: yes

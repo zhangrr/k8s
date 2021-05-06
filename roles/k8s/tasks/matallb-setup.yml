@@ -1,0 +1,61 @@
+---
+    - name: download mb ns
+      get_url:
+        url: https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/namespace.yaml
+        dest: /tmp/namespace.yaml
+        mode: 0744
+        validate_certs: yes
+      environment:
+        https_proxy: 'http://172.16.8.1:3128'
+
+    - name: download mb lb
+      get_url:
+        url: https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/metallb.yaml
+        dest: /tmp/metallb.yaml
+        mode: 0744
+        validate_certs: yes
+      environment:
+        https_proxy: 'http://172.16.8.1:3128'
+
+    - name: configure mb image
+      replace: path=/tmp/metallb.yaml regexp={{item.regex}} replace={{item.replace_with}}
+      with_items:
+        - regex: 'image: metallb/speaker:v0.9.3'
+          replace_with: 'image: 172.18.31.28/library/metallb/speaker:v0.9.3'
+        - regex: 'image: metallb/controller:v0.9.3'
+          replace_with: 'image: 172.18.31.28/library/docker.io/metallb/controller:v0.9.3'
+
+    - name: mb ns deploy
+      become: yes
+      become_user: centos
+      shell: kubectl apply -f /tmp/namespace.yaml
+
+    - name: mb lb deploy
+      become: yes
+      become_user: centos
+      shell: kubectl apply -f /tmp/metallb.yaml
+
+    - name: deploy mb key
+      become: yes
+      become_user: centos
+      shell: kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+
+    - name: Update /home/centos/lb.yaml
+      become: true
+      become_user: centos
+      blockinfile:
+          path: /home/centos/lb.yml
+          create: yes
+          block: |
+            kind: ConfigMap
+            apiVersion: v1
+            metadata:
+              name: config
+              namespace: metallb-system
+            data:
+              config: |
+                address-pools:
+                - name: default
+                  protocol: layer2
+                  addresses:
+                  - 172.18.31.100-172.18.31.110

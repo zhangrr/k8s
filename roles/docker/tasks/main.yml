@@ -1,0 +1,39 @@
+---
+- include_tasks: Setup-RedHat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Install Docker.
+  package:
+    name: "{{ docker_package }}"
+    state: "{{ docker_package_state }}"
+  notify: restart docker
+
+- name: configure docker proxy
+  lineinfile:
+    path: /usr/lib/systemd/system/docker.service
+    insertafter: "^Type=notify"
+    line: |
+      Environment="http_proxy={{ docker_http_proxy }}"
+      Environment="https_proxy={{ docker_https_proxy }}"
+      Environment="no_proxy={{ docker_no_proxy }}"
+    firstmatch: yes
+    state: present
+  notify: restart docker
+
+- name: configure docker registry
+  lineinfile:
+    path: /usr/lib/systemd/system/docker.service
+    regexp: "^ExecStart.*" 
+    line: "ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --selinux-enabled --log-driver=journald --registry-mirror=https://registry.docker-cn.com --registry-mirror=https://docker.mirrors.ustc.edu.cn --insecure-registry {{ docker_insecure_registry }}"
+    state: present
+  notify: restart docker
+
+- name: Ensure Docker is started and enabled at boot.
+  service:
+    name: docker
+    state: "{{ docker_service_state }}"
+    enabled: "{{ docker_service_enabled }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Ensure handlers are notified now to avoid firewall conflicts.
+  meta: flush_handlers

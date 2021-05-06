@@ -1,0 +1,17 @@
+---
+    - name: Install iscsci-initiator
+      yum:
+        name: "{{ packages }}"
+        state: latest
+        update_cache: yes
+      vars:
+        packages:
+          - iscsi-initiator-utils
+      register: iscsi
+    
+    - name: Start and Enable iscsid
+      systemd:
+        name: iscsid.service
+        state: started
+        enabled: yes
+      when: iscsi.changed

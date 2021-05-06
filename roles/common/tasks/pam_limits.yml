@@ -1,0 +1,17 @@
+---
+    - name: modify pam_limits
+      pam_limits:
+        dest: "{{ item.dest }}"
+        domain: '*'
+        limit_type: "{{ item.limit_type }}"
+        limit_item: "{{ item.limit_item }}"
+        value: "{{ item.value }}"
+      with_items:
+        - { dest: '/etc/security/limits.conf',limit_type: 'soft',limit_item: 'nofile', value: '655350' }
+        - { dest: '/etc/security/limits.conf',limit_type: 'hard',limit_item: 'nofile', value: '655350'}
+        - { dest: '/etc/security/limits.conf',limit_type: 'soft',limit_item: 'nproc', value: '102400' }
+        - { dest: '/etc/security/limits.conf',limit_type: 'hard',limit_item: 'nproc', value: '102400' }
+        - { dest: '/etc/security/limits.conf',limit_type: 'soft',limit_item: 'sigpending', value: '255377' }
+        - { dest: '/etc/security/limits.conf',limit_type: 'hard',limit_item: 'sigpending', value: '255377' }
+        - { dest: '/etc/security/limits.d/20-nproc.conf', limit_type: 'soft',limit_item: 'nproc', value: '262144' }
+        - { dest: '/etc/security/limits.d/20-nproc.conf', limit_type: 'hard',limit_item: 'nproc', value: '262144' }

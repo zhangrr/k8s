@@ -1,0 +1,28 @@
+---
+k8s_packages:
+  - name: kubelet
+    state: present
+  - name: kubectl
+    state: present
+  - name: kubeadm
+    state: present
+  - name: ipset
+    state: present
+  - name: ipvsadm
+    state: present
+
+k8s_yum_base_url: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+k8s_yum_gpg_key:
+  - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+  - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+docker_insecure_registry: 172.18.31.28
+k8s_http_proxy: http://172.16.8.1:3128
+
+k8s_pod_network:
+  cni: 'flannel'
+  cidr: '10.244.0.0/20'
+  svc: '192.168.244.0/20'
+  localdns: 'cluster.local'
+
+k8s_flannel_manifest_file: https://raw.githubusercontent.com/coreos/flannel/v0.12.0/Documentation/kube-flannel.yml

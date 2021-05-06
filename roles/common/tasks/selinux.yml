@@ -1,0 +1,8 @@
+---
+    - name: disable SELinux on reboot
+      selinux:
+        state: disabled
+
+    - name: disable SELinux
+      command: setenforce 0
+      when: ansible_os_family == 'RedHat' and ansible_selinux.status == 'enabled'
