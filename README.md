@@ -11,7 +11,8 @@ image: {{ docker_insecure_registry }}/library/quay.io/coreos/flannel:v0.12.0-amd
 
 否则安装flanel网络插件，docker去拉flanel镜像的时候9成9失败
 
-变量如下：
+vars.yml变量如下：
+```
 docker_http_proxy: http://172.16.8.1:3128
 docker_https_proxy: http://172.16.8.1:3128
 docker_no_proxy: "localhost,127.0.0.0/8,172.16.0.0/16,172.18.0.0/16,172.18.31.28"
@@ -24,15 +25,16 @@ k8s_pod_network:
   cidr: '10.244.0.0/20'
   svc: '192.168.244.0/20'
   localdns: 'cluster.local'
-
+```
 hosts清单中标明每个节点的身份：
+```
 [k8s_t:vars]
 ansible_ssh_user="root"　　　　　　　
 [k8s_t]
 172.18.31.50 k8s_role=master
 172.18.31.51 k8s_role=worker
 172.18.31.52 k8s_role=worker
-
+```
 执行ansible -k -i hosts main.yml后输入密码即可安装。 
 
 同时roles k8s下的matallb-setup.yml为安装matallb预留了yml，可按需安装。
